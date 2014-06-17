@@ -1,0 +1,11 @@
+module SimpleImage;
+
+use Color8: all;
+provide all;
+
+external int imshow( color[.,.] array);
+#pragma linkobj "src/SimpleImage/imshow.o"
+#pragma linkwith "png"
+#pragma refcounting [1]
+
+
