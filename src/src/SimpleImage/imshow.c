@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
+#include <string.h>
 #include <png.h>
 
 void imshow( SAC_ND_PARAM_out_nodesc( res_nt, int),
@@ -95,7 +97,8 @@ void imshow( SAC_ND_PARAM_out_nodesc( res_nt, int),
   sys = malloc( 1024*sizeof( char));
   sprintf( sys, "(display \"%s\" && rm -f \"%s\") > /dev/null 2>&1 &", 
 	   fname, fname);
-  system( sys);
+  if (EXIT_SUCCESS != system( sys))
+    SAC_RuntimeError("Failed to execute '%s': %s", sys, strerror(errno));
 
   free( sys);
   free( fname);
