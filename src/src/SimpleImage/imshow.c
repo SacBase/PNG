@@ -5,13 +5,12 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <errno.h>
 #include <png.h>
 
 void imshow( SAC_ND_PARAM_out_nodesc( res_nt, int),
 	     SAC_ND_PARAM_in( ar_nt, int))
 {
-  char *fname;
-  FILE *fp;
   png_structp png_ptr;
   png_infop info_ptr;
   png_bytep  *row_pointers;
@@ -21,9 +20,14 @@ void imshow( SAC_ND_PARAM_out_nodesc( res_nt, int),
   int x, y, i, aroffset, ioffset;
   char *sys;
   
-  fname = tempnam( NULL, "img_");
-  fp = fopen( fname, "wb");
-  if ( fp == NULL) {
+  int fd;
+  FILE *fp;
+  char fname[] = "img_XXXXXX";
+  
+  if (-1 == (fd = mkstemp( fname)))
+    SAC_RuntimeError( "mkstemp failed: %s", strerror( errno));
+
+  if (NULL == (fp = fdopen( fd, "wb"))) {
     SAC_RuntimeError( "Failed to create temporary image file");
   }   
 
@@ -42,14 +46,17 @@ void imshow( SAC_ND_PARAM_out_nodesc( res_nt, int),
   height = SAC_ND_A_DESC_SHAPE( ar_nt, 0);
   width  = SAC_ND_A_DESC_SHAPE( ar_nt, 1);
 
+  png_init_io( png_ptr, fp);
   png_set_IHDR( png_ptr, info_ptr, 
 		width,
 		height,
 		8,                              /* bit depth */
 		PNG_COLOR_TYPE_RGB,             /* color type */
 		PNG_INTERLACE_NONE,             /* interlace type */
-		PNG_COMPRESSION_TYPE_DEFAULT,   /* compression type */
-		PNG_FILTER_TYPE_DEFAULT);       /* filter type */
+		PNG_COMPRESSION_TYPE_BASE,   /* compression type */
+		PNG_FILTER_TYPE_BASE);       /* filter type */
+
+  png_write_info(png_ptr, info_ptr);
 
   row_pointers = malloc( height*sizeof( png_bytep));
   img_data = malloc( height*width*4);
@@ -66,9 +73,10 @@ void imshow( SAC_ND_PARAM_out_nodesc( res_nt, int),
   for (y = 0; y < height; y++) {
     for (x = 0; x < width; x++) {
       bptr[ioffset] = 
-	(((png_int_32)SAC_ND_A_FIELD( ar_nt)[aroffset])     << 16
-	 | ((png_int_32)SAC_ND_A_FIELD( ar_nt)[aroffset+1]) << 8
-	 | ((png_int_32)SAC_ND_A_FIELD( ar_nt)[aroffset+2]));
+	 ( (((png_int_32)SAC_ND_A_FIELD( ar_nt)[aroffset+0] & 0xff) <<  8) 
+	 | (((png_int_32)SAC_ND_A_FIELD( ar_nt)[aroffset+1] & 0xff) <<  16) 
+	 | (((png_int_32)SAC_ND_A_FIELD( ar_nt)[aroffset+2] & 0xff) <<  24) 
+         );
       ioffset +=1;
       aroffset+=3;
     }
@@ -78,8 +86,7 @@ void imshow( SAC_ND_PARAM_out_nodesc( res_nt, int),
   /*
    * Write the image
    */
-  png_init_io( png_ptr, fp);
-  png_set_filler(png_ptr, 0, PNG_FILLER_BEFORE);
+  png_set_filler(png_ptr, 0, PNG_FILLER_AFTER);
   png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_STRIP_FILLER, NULL);
 
   /*
@@ -101,8 +108,6 @@ void imshow( SAC_ND_PARAM_out_nodesc( res_nt, int),
     SAC_RuntimeError("Failed to execute '%s': %s", sys, strerror(errno));
 
   free( sys);
-  free( fname);
-
 
   /*
    * return 0
