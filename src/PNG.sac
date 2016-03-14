@@ -18,27 +18,27 @@ external color[.,.] readPNG( string NAME);
      * Read a PNG file from the file NAME.
      */
 
-external void writePNG( string NAME, color[.,.] array);
+external int writePNG( string NAME, color[.,.] array);
     #pragma effect FileSystem::TheFileSystem
     #pragma linkobj "src/PNG/array2png.o"
     #pragma linkname "SAC_PNG_array2png"
     #pragma linkwith "png"
     #pragma linkwith "z"
-    #pragma refcounting[1]
+    #pragma refcounting[2]
     /*
      * Save 2D color array to PNG file NAME.
      */
 
-void showPNG( color[.,.] array)
+/*
+ * Save color image to PNG and visualize it somehow.
+ */
+int showPNG( color[.,.] array)
 {
     name = tmpnam();
-    writePNG( name, array);
+    ret = writePNG( name, array);
     cmd = sprintf("(display '%s' || xv '%s' || firefox '%s')",
                   name, name, name);
     _ = system(cmd);
+
+    return ret;
 }
-    /*
-     * Save color image to PNG and visualize it somehow.
-     */
-
-
