@@ -6,8 +6,6 @@ INCLUDE ("${CMAKE_SOURCE_DIR}/cmake-common/resolve-sac2c-dependencies.cmake")
 SET (C_DEPS_SRC
 	src/PNG/array2png.c
 	src/PNG/png2array.c
-	src/PNG/imagesac.h
-	src/SimpleImage/imagesac.h
 	src/SimpleImage/imshow.c
 )
 
@@ -39,7 +37,8 @@ FOREACH(name ${C_DEPS_SRC})
 
   ADD_CUSTOM_COMMAND (
     OUTPUT "${dst}"
-    DEPENDS "${src}"
+    IMPLICIT_DEPENDS C "${src}"
+    MAIN_DEPENDENCY "${src}"
     COMMAND ${SAC2C} -v0 -noprelude -cc ccmod -o "${dst}" "${src}"
     COMMENT "Generating ${dst}"
   )
@@ -67,7 +66,7 @@ FOREACH (name ${SAC_SRC})
     ADD_CUSTOM_COMMAND (
         OUTPUT ${mod} ${tree}
         COMMAND
-            ${SAC2C} -v0 -linksetsize 0 -o ${DLL_BUILD_DIR} ${src}
+            ${SAC2C} -v0 -linksetsize ${LINKSETSIZE} -o ${DLL_BUILD_DIR} ${src}
         WORKING_DIRECTORY
             ${dir}
         DEPENDS ${moddep_list}

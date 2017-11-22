@@ -14,6 +14,7 @@ SET (LINKSETSIZE        "0"         CACHE STRING "Set a value for -linksetsize p
 
 # Check whether sac2c is operational
 INCLUDE ("cmake-common/check-sac2c.cmake")
+INCLUDE ("cmake-common/misc-macros.cmake")
 
 FIND_PACKAGE (PNG REQUIRED)
 
@@ -25,22 +26,9 @@ SET (SAC2C_EXTRA_INC ${include_str}
      CACHE STRING "Extra include files that should be used by sac2c")
 UNSET (include_str)
 
-# TODO test if librt is ever needed, see SDL2:40, and add the check.
-
 # For every target run CMakeLists.txt in src
 FOREACH (TARGET IN ITEMS ${TARGETS})
     ADD_SUBDIRECTORY (src   src-${TARGET})
 ENDFOREACH ()
 
-# This build target is responsible for generating the package sac2crc file
-ADD_CUSTOM_TARGET (create-sac2crc-file ALL
-    COMMAND ${CMAKE_COMMAND}
-        -DUSER_HOME="$ENV{HOME}"
-        # XXX ideally we should use PROJECT_NAME, but sadly this has a dash `-'
-        #     which sac2crc does not support within target names
-        -DPACKAGE_NAME="png"
-        -DLIB_PATH="${DLL_BUILD_DIR}"
-        -DTREE_PATH="${DLL_BUILD_DIR}"
-        -P "${PROJECT_SOURCE_DIR}/cmake-common/generate-sac2crc-file.cmake"
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    COMMENT "Creating package sac2crc file in user's home directory")
+CREATE_SAC2CRC_TARGET ("png" "${DLL_BUILD_DIR}" "${DLL_BUILD_DIR}" "")
