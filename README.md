@@ -7,7 +7,7 @@ Build
 -----
 
 Requirements:
- * [CMake](https://cmake.org/) >= 3.3
+ * [CMake](https://cmake.org/) >= 3.10
  * The `libpng` library
  * an installed and/or compiled SaC [Stdlib](https://github.com/SacBase/Stdlib)
 
