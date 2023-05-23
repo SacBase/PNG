@@ -35,6 +35,18 @@ external int writePNG( File FILE, color[.,.] array);
     #pragma linkname "SAC_PNG_array2png_file"
     #pragma linkwith "png"
     #pragma linkwith "z"
+    #pragma refcounting[2]
+    /*
+     * Save 2D color array to PNG file FILE.
+     */
+
+external int printPNG (color[.,.] array);
+    #pragma effect TermFile::stdout
+    #pragma linkobj "src/PNG/array2png.o"
+    #pragma linkname "SAC_PNG_array2png_stdout"
+    #pragma linkwith "png"
+    #pragma linkwith "z"
+    #pragma refcounting[1]
     /*
      * Save 2D color array to PNG file FILE.
      */
